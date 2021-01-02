@@ -13,15 +13,10 @@ except:
 def init(context):
     sid = '600848'
     recent_data = ts.get_hist_data(sid, '2020-06-01', '2020-07-30')
+    recent_data = recent_data.iloc[::-1]
     days_value = recent_data.index
     days_close = recent_data['close'].values
     days = []
-    # 获取行情日期列表
-    print('准备数据训练SVM')
-    for i in range(len(days_value)):
-        days.append(str(days_value[i])[0:10])
-    x_all = []
-    y_all = []
     # 获取行情日期列表
     print('准备数据训练SVM')
     for i in range(len(days_value)):
@@ -53,5 +48,19 @@ def init(context):
         features = [close_mean, volume_mean, max_mean, min_mean, vol, return_now, std]
         x_all.append(features)
 
+    for i in range(len(days_close) - 20):
+        if days_close[i + 20] > days_close[i + 15]:
+            label = 1
+        else:
+            label = 0
+        y_all.append(label)
+    x_train = x_all[: -1]
+    y_train = y_all[: -1]
+    # 训练SVM
+    clf = svm.SVC(C=1.0, kernel='rbf', degree=3, gamma='auto', coef0=0.0, shrinking=True, probability=False,
+                          tol=0.001, cache_size=200, verbose=False, max_iter=-1,
+                          decision_function_shape='ovr', random_state=None)
+    clf.fit(x_train, y_train)
+    print('训练完成!')
 
 init("")
