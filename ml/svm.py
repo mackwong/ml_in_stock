@@ -11,7 +11,7 @@ except:
 
 
 def init(context):
-    sid = '600848'
+    sid = context['sid']
     recent_data = ts.get_hist_data(sid, '2020-06-01', '2020-07-30')
     recent_data = recent_data.iloc[::-1]
     days_value = recent_data.index
@@ -61,6 +61,16 @@ def init(context):
                           tol=0.001, cache_size=200, verbose=False, max_iter=-1,
                           decision_function_shape='ovr', random_state=None)
     clf.fit(x_train, y_train)
+    context["clf"] = clf
     print('训练完成!')
 
-init("")
+def on_bar(context):
+    pass
+
+def main():
+    context = {"sid": '600848'}
+    init(context)
+    on_bar(context)
+
+if __name__ == '__main__':
+    main()
