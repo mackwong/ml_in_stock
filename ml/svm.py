@@ -9,11 +9,10 @@ except:
     print('请安装scikit-learn库和带mkl的numpy')
     sys.exit(-1)
 
-gclf = ""
 
 def init(context):
     sid = context['sid']
-    recent_data = ts.get_hist_data(sid, '2020-06-01', '2020-07-30')
+    recent_data = ts.get_hist_data(sid, '2020-06-01', '2020-08-30')
     recent_data = recent_data.iloc[::-1]
     days_value = recent_data.index
     days_close = recent_data['close'].values
@@ -49,8 +48,8 @@ def init(context):
         features = [close_mean, volume_mean, max_mean, min_mean, vol, return_now, std]
         x_all.append(features)
 
-    for i in range(len(days_close) - 20):
-        if np.mean(days_close[i + 15: i + 20]) > days_close[i + 15]:
+    for i in range(15, (len(days_close) - 5)):
+        if days_close[i + 1] > days_close[i]:
             label = 1
         else:
             label = 0
@@ -63,14 +62,12 @@ def init(context):
                           decision_function_shape='ovr', random_state=None)
     clf.fit(x_train, y_train)
     context["clf"] = clf
-    global gclf
-    gclf = clf
     print('训练完成!')
 
 
 def on_bar(context):
     sid = context['sid']
-    recent_data = ts.get_hist_data(sid, '2020-07-31', '2020-09-30')
+    recent_data = ts.get_hist_data(sid, '2020-07-01', '2020-09-30')
     recent_data = recent_data.iloc[::-1]
     days_value = recent_data.index
     days_close = recent_data['close'].values
@@ -105,11 +102,10 @@ def on_bar(context):
         features = [close_mean, volume_mean, max_mean, min_mean, vol, return_now, std]
         x_all.append(features)
         features = np.array(features).reshape(1, -1)
-        global gclf
-        prediction = gclf.predict(features)
+        prediction = context["clf"].predict(features)
+        print(prediction[0], days_close[index+1]>days_close[index])
         y_all.append(prediction[0])
 
-    print(y_all)
 
 def main():
     context = {"sid": '600848'}
